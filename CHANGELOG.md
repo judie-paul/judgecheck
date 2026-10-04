@@ -8,6 +8,8 @@
   bootstrap intervals, and an expert-agreement ceiling.
 - LLM judges for Anthropic, OpenAI and Ollama with direct, rationale and rubric strategies,
   strict verdict parsing, an on-disk response cache, a `plan` command and a paid-call budget guard.
+- Streamlit results explorer, Dockerfile and Compose with a health check, and
+  `scripts/results.py` to regenerate published results with their commands.
 - Seeded mock judge, YAML-configured `run` and `report` commands, JSON and Markdown reports.
 - Bundled CC BY 4.0 sample, `judgecheck ingest` command, Makefile and CI.
 

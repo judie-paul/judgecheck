@@ -6,7 +6,13 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from judgecheck.config import Settings
-from judgecheck.ingest import IngestError, load_hf, load_jsonl, load_sample
+from judgecheck.ingest import (
+    IngestError,
+    load_hf,
+    load_jsonl,
+    load_sample,
+    write_comparisons,
+)
 from judgecheck.judges import Judge, LLMJudge, build_judge
 from judgecheck.normalize import normalize
 from judgecheck.report import RunReport, human_report, judge_report, to_markdown
@@ -174,6 +180,7 @@ def _score(config: RunConfig, settings: Settings, comparisons: list[Comparison])
         judges=judges,
     )
     config.out_dir.mkdir(parents=True, exist_ok=True)
+    write_comparisons(comparisons, config.out_dir / "comparisons.jsonl")
     (config.out_dir / "results.json").write_text(
         report.model_dump_json(indent=2) + "\n", encoding="utf-8"
     )
