@@ -2,7 +2,7 @@
 
 import json
 import random
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from judgecheck.judges.base import Judge
@@ -20,10 +20,16 @@ def select(comparisons: Sequence[Comparison], limit: int | None, seed: int) -> l
     return sorted(random.Random(seed).sample(ordered, limit), key=lambda c: c.id)
 
 
-def run_judge(judge: Judge, comparisons: Sequence[Comparison]) -> list[JudgeRecord]:
+def run_judge(
+    judge: Judge,
+    comparisons: Sequence[Comparison],
+    progress: Callable[[int, int], None] | None = None,
+) -> list[JudgeRecord]:
     """Judge every comparison with model a first, then with model b first."""
     records = []
-    for comparison in comparisons:
+    for done, comparison in enumerate(comparisons, start=1):
+        if progress:
+            progress(done, len(comparisons))
         first_ab = judge.judge(comparison, "a")
         first_ba = judge.judge(comparison, "b")
         records.append(

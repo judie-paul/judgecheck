@@ -41,6 +41,28 @@ are reported as undefined, never as zero. Judges are configured in `configs/*.ya
 `make pipeline` runs the offline mock judges, whose known biases verify the metrics
 (`tests/test_judges.py` recovers each injected bias).
 
+## Judges
+
+Judges are chosen explicitly in a YAML config; see `configs/`.
+
+| Type | Models | Cost |
+| --- | --- | --- |
+| `mock` | seeded simulation with injectable biases | free |
+| `ollama` | any local model, for example `qwen2.5:1.5b`, `llama3.2:1b` | free |
+| `openai` | `gpt-4o-mini` (default) | paid |
+| `anthropic` | `claude-sonnet-5-5` (default) | paid |
+
+Strategies: `direct` (verdict only), `rationale` (short comparison, then verdict) and
+`rubric` (criteria-guided comparison, then verdict). Verdicts must be `[[A]]`, `[[B]]` or
+`[[C]]` (tie); a response without one counts as **unusable** and is reported, never guessed.
+Dataset text is delimited and declared to be data, not instructions.
+
+Responses are cached on disk (`.cache/responses`) by provider, model, settings and prompt, so
+repeated or interrupted runs cost nothing extra. Spending is gated: `judgecheck plan` shows
+calls, cache hits and approximate tokens without calling any model, and a run with paid judges
+refuses to start unless `max_paid_calls` in the config covers the calls still to be made. A
+missing API key is an error, never a silent fallback to a mock.
+
 ## Status
 
 Early development. See `PLAN.md` for the roadmap and `PROGRESS.md` for what is

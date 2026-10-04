@@ -9,8 +9,9 @@ import typer
 
 from judgecheck.config import Settings
 from judgecheck.ingest import IngestError, load_hf, load_jsonl, load_sample, write_comparisons
+from judgecheck.llm.base import ConfigError
 from judgecheck.normalize import normalize
-from judgecheck.pipeline import run_study, score_study
+from judgecheck.pipeline import BudgetError, plan_study, run_study, score_study
 from judgecheck.runconfig import load_config
 
 app = typer.Typer(help="Measure how far LLM judges agree with MT-Bench experts.")
@@ -57,6 +58,29 @@ def ingest(
 
 
 @app.command()
+def plan(
+    config: Annotated[Path, typer.Option(help="YAML run configuration")] = Path(
+        "configs/default.yaml"
+    ),
+) -> None:
+    """Show calls, cache hits and approximate tokens for LLM judges. Calls no model."""
+    try:
+        rows = plan_study(load_config(config))
+    except (IngestError, ConfigError, ValueError, OSError) as error:
+        typer.echo(f"error: {error}", err=True)
+        raise typer.Exit(1) from error
+    if not rows:
+        typer.echo("no LLM judges configured; nothing to spend")
+    for row in rows:
+        kind = "PAID" if row.paid else "free"
+        typer.echo(
+            f"{row.judge} ({row.provider}/{row.model}, {kind}): {row.calls} calls, "
+            f"{row.cached} cached, {row.to_run} to run, ~{row.approx_input_tokens} input tokens, "
+            f"up to {row.max_output_tokens} output tokens"
+        )
+
+
+@app.command()
 def run(
     config: Annotated[Path, typer.Option(help="YAML run configuration")] = Path(
         "configs/default.yaml"
@@ -65,7 +89,7 @@ def run(
     """Run every configured judge, then write JSON and Markdown reports."""
     try:
         report = run_study(load_config(config))
-    except (IngestError, ValueError, OSError) as error:
+    except (IngestError, ConfigError, BudgetError, ValueError, OSError) as error:
         typer.echo(f"error: {error}", err=True)
         raise typer.Exit(1) from error
     typer.echo(f"scored {len(report.judges)} judges on {report.comparisons} comparisons")
