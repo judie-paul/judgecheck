@@ -1,0 +1,12 @@
+# Prompting-strategy comparison for one small model on a smaller seeded sample of 40
+# comparisons, because the reasoning strategies generate far more tokens per call.
+#   judgecheck run --config configs/ollama-strategies.yaml
+source: hf
+seed: 42
+limit: 40
+bootstrap: 1000
+out_dir: reports/ollama-strategies
+judges:
+  - {name: qwen2.5-1.5b-direct, type: ollama, params: {model: "qwen2.5:1.5b", strategy: direct}}
+  - {name: qwen2.5-1.5b-rationale, type: ollama, params: {model: "qwen2.5:1.5b", strategy: rationale}}
+  - {name: qwen2.5-1.5b-rubric, type: ollama, params: {model: "qwen2.5:1.5b", strategy: rubric}}
