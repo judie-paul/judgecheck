@@ -1,6 +1,6 @@
 PYTHON ?= .venv/bin/python
 
-.PHONY: setup lint format typecheck test test-network ingest ingest-hf clean
+.PHONY: setup lint format typecheck test test-network ingest ingest-hf pipeline report clean
 setup:
 	uv --cache-dir /tmp/judgecheck-uv-cache venv --python 3.12 .venv
 	uv --cache-dir /tmp/judgecheck-uv-cache pip install --python $(PYTHON) -e '.[dev]'
@@ -20,5 +20,9 @@ ingest:
 	$(PYTHON) -m judgecheck.cli ingest --source sample --out data/comparisons.jsonl
 ingest-hf:
 	$(PYTHON) -m judgecheck.cli ingest --source hf --out data/comparisons.jsonl
+pipeline:
+	$(PYTHON) -m judgecheck.cli run --config configs/default.yaml
+report:
+	$(PYTHON) -m judgecheck.cli report --config configs/default.yaml
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov build dist .coverage
