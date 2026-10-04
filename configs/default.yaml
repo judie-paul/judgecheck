@@ -1,0 +1,17 @@
+# Offline run on the bundled sample. Mock judges stand in for models and have known
+# behaviour, so this checks the pipeline and metrics without any keys or downloads.
+source: sample
+seed: 42
+bootstrap: 1000
+min_length_ratio: 1.2
+out_dir: reports
+judges:
+  - name: mock-fair
+    type: mock
+    params: {accuracy: 0.7}
+  - name: mock-first-biased
+    type: mock
+    params: {accuracy: 0.7, position_bias: 0.3}
+  - name: mock-verbose
+    type: mock
+    params: {accuracy: 0.7, verbosity_bias: 0.4}
