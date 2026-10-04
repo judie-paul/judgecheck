@@ -2,8 +2,9 @@
 
 ## Current phase
 
-Milestone 3 (LLM judges, strategies, cache and spend guard) is submitted through a PR.
-Milestones 1 and 2 are merged. Next: milestone 4, the results explorer and containers.
+Milestone 4 (results explorer, container, results script) is submitted through a PR.
+Milestones 1-3 are merged. A local Ollama study (`configs/ollama-study.yaml`) is running;
+milestone 5 publishes its measured results and the write-up.
 
 ## Implemented
 
@@ -33,6 +34,12 @@ Milestones 1 and 2 are merged. Next: milestone 4, the results explorer and conta
   parsing; delimiter-neutralized prompts; atomic response cache; `judgecheck plan`; paid runs
   need a covering `max_paid_calls`; missing keys raise instead of mocking.
 
+- Streamlit explorer (`judgecheck app`) with agreement, position and verbosity views and a
+  drill-down; runs now store `comparisons.jsonl` beside the report. Docker image runs as a
+  non-root user with a health check; Compose adds an optional Ollama profile.
+- `scripts/results.py` regenerates `docs/results.md` and `docs/results.json` with the commands
+  and settings that produced them.
+
 ## Validation
 
 - Dataset schema, license (CC BY 4.0) and revision confirmed from the Hugging Face API.
@@ -57,6 +64,11 @@ Milestones 1 and 2 are merged. Next: milestone 4, the results explorer and conta
   the direct strategy (about 5.5 s per call); `llama3.2:1b` ignored the `[[A]]` format on
   rationale and rubric prompts (0/3 parsed, answering "Assistant A's reply is better"), and
   `qwen2.5:1.5b` parsed 2/3 and 3/3. Strict parsing keeps these as unusable responses.
+- Milestone 4: 92 tests pass at 97.2% coverage. The explorer's data layer is unit tested and
+  the Streamlit script renders headlessly under `streamlit.testing` (the script is excluded
+  from coverage because it runs in that runtime). `docker compose build` and
+  `docker compose up --wait` succeed locally: the container reports healthy and serves the
+  mounted reports.
 - Python 3.11 is validated only by CI.
 
 ## Constraints
