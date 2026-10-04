@@ -1,0 +1,19 @@
+# Local study with small models served by Ollama (free; CPU-bound, roughly 5-20 s per call).
+# Run on the full pinned dataset, scored on a seeded random sample of 120 comparisons.
+#   docker run -d --name judgecheck-ollama -v judgecheck-ollama:/root/.ollama \
+#     -p 127.0.0.1:11434:11434 ollama/ollama
+#   docker exec judgecheck-ollama ollama pull qwen2.5:1.5b
+#   docker exec judgecheck-ollama ollama pull llama3.2:1b
+#   judgecheck plan --config configs/ollama-study.yaml
+#   judgecheck run  --config configs/ollama-study.yaml
+source: hf
+seed: 42
+limit: 120
+bootstrap: 1000
+out_dir: reports/ollama-study
+judges:
+  - {name: qwen2.5-1.5b-direct, type: ollama, params: {model: "qwen2.5:1.5b", strategy: direct}}
+  - {name: qwen2.5-1.5b-rationale, type: ollama, params: {model: "qwen2.5:1.5b", strategy: rationale}}
+  - {name: qwen2.5-1.5b-rubric, type: ollama, params: {model: "qwen2.5:1.5b", strategy: rubric}}
+  - {name: llama3.2-1b-direct, type: ollama, params: {model: "llama3.2:1b", strategy: direct}}
+  - {name: llama3.2-1b-rationale, type: ollama, params: {model: "llama3.2:1b", strategy: rationale}}

@@ -1,0 +1,16 @@
+# Paid judges. Needs ANTHROPIC_API_KEY and OPENAI_API_KEY, and the llm extra.
+# 1. judgecheck plan --config configs/frontier.example.yaml   (calls no model)
+# 2. Set max_paid_calls to at least the number of calls `plan` reports as "to run".
+# 3. judgecheck run --config configs/frontier.example.yaml
+# Responses are cached, so interrupted or repeated runs only pay for new calls.
+source: hf
+seed: 42
+limit: 120
+bootstrap: 1000
+out_dir: reports/frontier
+# max_paid_calls: 960
+judges:
+  - {name: claude-sonnet-5-5-direct, type: anthropic, params: {strategy: direct}}
+  - {name: claude-sonnet-5-5-rationale, type: anthropic, params: {strategy: rationale}}
+  - {name: gpt-4o-mini-direct, type: openai, params: {strategy: direct}}
+  - {name: gpt-4o-mini-rationale, type: openai, params: {strategy: rationale}}

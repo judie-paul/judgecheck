@@ -168,3 +168,8 @@ def test_cli_run_and_report(tmp_path: Path) -> None:
     assert result.exit_code == 0 and "rescored 1 judges" in result.output
     result = runner.invoke(app, ["run", "--config", str(tmp_path / "missing.yaml")])
     assert result.exit_code == 1
+
+
+def test_every_shipped_config_is_valid() -> None:
+    for path in sorted(Path("configs").glob("*.yaml")):
+        assert load_config(path).judges, path
