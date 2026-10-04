@@ -75,8 +75,17 @@ missing API key is an error, never a silent fallback to a mock.
 
 ## Status
 
-Early development. See `PLAN.md` for the roadmap and `PROGRESS.md` for what is
-implemented and verified. No results are published yet.
+**v0.1.0: the tooling is complete; the published study results are still pending.**
+Ingestion, metrics, mock/Ollama/OpenAI/Anthropic judges, the response cache, the spend guard, the
+explorer and the Docker image are implemented and tested (92 tests, CI green on Python 3.11 and
+3.12). Only the local Ollama study (`configs/ollama-study.yaml`, `configs/ollama-strategies.yaml`)
+has been started, and it is not finished, so **no model results are published and none are
+claimed**. The Anthropic and OpenAI judges have only been tested with faked clients because no API
+keys were available. Expert-to-expert agreement on the full pinned split (S1 0.672, S2 0.828) is
+the one real measurement so far; see `PROGRESS.md`.
+
+When a study finishes, `make results` writes `docs/results.md` with the commands that produced it.
+See `PLAN.md` for the remaining roadmap.
 
 ## License
 
