@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Milestone 1 (foundation) is implemented locally and submitted through a PR.
-Next: milestone 2, metrics and the offline mock judge.
+Milestone 2 (metrics and the offline mock judge) is submitted through a PR.
+Milestone 1 is merged. Next: milestone 3, real judges and prompting strategies.
 
 ## Implemented
 
@@ -21,6 +21,13 @@ Next: milestone 2, metrics and the offline mock judge.
 - Sample, local JSONL and pinned Hugging Face loaders with line-numbered errors.
 - `judgecheck ingest` command, Makefile, pre-commit config and Python 3.11/3.12 CI.
 
+- Metrics: S1/S2 agreement, Cohen's kappa, expert ceiling, position consistency and
+  first/second bias, first-position pick rate, longer-answer preference, all with seeded
+  bootstrap intervals and explicit undefined results.
+- Seeded mock judge (accuracy, position bias, verbosity bias, failure rate) and
+  `judgecheck run` / `report` driven by YAML; stored per-judge JSONL runs allow
+  re-scoring without re-judging.
+
 ## Validation
 
 - Dataset schema, license (CC BY 4.0) and revision confirmed from the Hugging Face API.
@@ -30,6 +37,13 @@ Next: milestone 2, metrics and the offline mock judge.
 - `judgecheck ingest --source hf` normalizes the pinned split into 1,814 comparisons,
   961 with more than one vote; an independent pandas count gives the same figures.
 - Wheel and sdist build and pass `twine check`; the wheel includes the sample.
+- Milestone 2: 51 tests pass at 97.9% coverage. Injected biases are recovered: a bias-free
+  mock is 100% order-consistent; position_bias=1 gives first-pick rate 1.0; verbosity_bias=1
+  gives a longer-pick rate of 1.0.
+- Mock run on the full pinned split (1,814 comparisons, seed 42, `source: hf`): expert-to-expert
+  agreement is S1 0.672 [0.646, 0.698] and S2 0.828 [0.801, 0.853] over 961 multi-vote
+  comparisons, in line with the roughly 63%/81% the MT-Bench paper reports. Mock judges are
+  simulations, not model results.
 - Python 3.11 is validated only by CI.
 
 ## Constraints
