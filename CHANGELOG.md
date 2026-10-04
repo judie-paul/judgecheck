@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 - tooling release
 
 - Repository standards, contribution guidance and implementation roadmap.
 - Validated MT-Bench schema, turn-aware canonical normalization and pinned loaders.
@@ -13,4 +13,8 @@
 - Seeded mock judge, YAML-configured `run` and `report` commands, JSON and Markdown reports.
 - Bundled CC BY 4.0 sample, `judgecheck ingest` command, Makefile and CI.
 
-No release or measured result is claimed yet.
+Study results (Ollama, Claude, GPT-4o-mini) are not part of this release.
+
+## Unreleased
+
+- Reduced local study configs (`ollama-study.yaml`, `ollama-strategies.yaml`) sized for CPU-only runs.

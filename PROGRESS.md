@@ -2,9 +2,10 @@
 
 ## Current phase
 
-Milestone 4 (results explorer, container, results script) is submitted through a PR.
-Milestones 1-3 are merged. A local Ollama study (`configs/ollama-study.yaml`) is running;
-milestone 5 publishes its measured results and the write-up.
+Milestones 1-4 are merged and released as v0.1.0. Milestone 5 (study results, written analysis,
+v1.0.0) is not done: the local Ollama study was started but had not finished when v0.1.0 was cut
+(about a quarter of the calls were cached at ~11 s per call on a shared CPU-only machine), so
+there are no published model results. No Claude or GPT results exist: no API keys were available.
 
 ## Implemented
 
