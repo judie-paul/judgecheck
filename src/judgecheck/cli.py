@@ -10,6 +10,8 @@ import typer
 from judgecheck.config import Settings
 from judgecheck.ingest import IngestError, load_hf, load_jsonl, load_sample, write_comparisons
 from judgecheck.normalize import normalize
+from judgecheck.pipeline import run_study, score_study
+from judgecheck.runconfig import load_config
 
 app = typer.Typer(help="Measure how far LLM judges agree with MT-Bench experts.")
 
@@ -52,6 +54,36 @@ def ingest(
         f"{len(rows)} expert votes -> {len(comparisons)} comparisons "
         f"({multi} with more than one vote) written to {out}"
     )
+
+
+@app.command()
+def run(
+    config: Annotated[Path, typer.Option(help="YAML run configuration")] = Path(
+        "configs/default.yaml"
+    ),
+) -> None:
+    """Run every configured judge, then write JSON and Markdown reports."""
+    try:
+        report = run_study(load_config(config))
+    except (IngestError, ValueError, OSError) as error:
+        typer.echo(f"error: {error}", err=True)
+        raise typer.Exit(1) from error
+    typer.echo(f"scored {len(report.judges)} judges on {report.comparisons} comparisons")
+
+
+@app.command()
+def report(
+    config: Annotated[Path, typer.Option(help="YAML run configuration")] = Path(
+        "configs/default.yaml"
+    ),
+) -> None:
+    """Re-score stored judge runs without calling any judge."""
+    try:
+        study = score_study(load_config(config))
+    except (IngestError, ValueError, OSError) as error:
+        typer.echo(f"error: {error}", err=True)
+        raise typer.Exit(1) from error
+    typer.echo(f"rescored {len(study.judges)} judges on {study.comparisons} comparisons")
 
 
 if __name__ == "__main__":
