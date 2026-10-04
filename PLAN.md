@@ -44,8 +44,9 @@ conversation turns; the `turn` field says which turn the expert judged.
 
 - Providers: Claude Sonnet (Anthropic), GPT-4o-mini (OpenAI), Llama 3.1 8B and
   Qwen 2.5 7B through Ollama. Explicit selection; timeouts, bounded retries and limits.
-- Strategies: direct verdict, rationale-first, rubric-guided, and order-swapped
-  consensus (judge both orders; inconsistent pairs become ties).
+- Strategies: direct verdict, rationale-first and rubric-guided. Every judge already runs in
+  both display orders, so order-swapped consensus (inconsistent pairs become ties) is a
+  scoring variant of every run rather than a separate strategy.
 - Strict verdict parsing; report the unparseable rate instead of hiding it.
 - On-disk response cache keyed by provider, model, strategy and prompt hash, so
   reruns and report changes cost nothing. Budget guard: sample limit and dry-run

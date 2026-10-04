@@ -45,7 +45,7 @@ class JudgeReport(BaseModel):
 
     judge: str
     comparisons: int
-    unparseable_rate: float | None
+    unparseable_rate: float | None  # share of calls that failed, were refused or had no verdict
     variants: dict[VariantName, VariantMetrics]
     position: PositionMetrics
     verbosity: VerbosityMetrics
@@ -177,7 +177,7 @@ def to_markdown(report: RunReport) -> str:
         "",
         "## Agreement with experts (consensus of both display orders)",
         "",
-        "| Judge | S1 | S2 | Cohen's kappa | Unparseable |",
+        "| Judge | S1 | S2 | Cohen's kappa | Unusable responses |",
         "| --- | --- | --- | --- | --- |",
     ]
     for judge in report.judges:

@@ -1,15 +1,36 @@
 """End-to-end study: load data, run judges, score, write reports."""
 
+import sys
 from pathlib import Path
+
+from pydantic import BaseModel
 
 from judgecheck.config import Settings
 from judgecheck.ingest import IngestError, load_hf, load_jsonl, load_sample
-from judgecheck.judges import build_judge
+from judgecheck.judges import Judge, LLMJudge, build_judge
 from judgecheck.normalize import normalize
 from judgecheck.report import RunReport, human_report, judge_report, to_markdown
 from judgecheck.runconfig import RunConfig
 from judgecheck.runner import read_records, run_judge, select, write_records
 from judgecheck.schema import Comparison
+
+
+class BudgetError(RuntimeError):
+    """A paid run was refused because it has no budget or would exceed it."""
+
+
+class PlanRow(BaseModel):
+    """What running one LLM judge would cost, before any call is made."""
+
+    judge: str
+    provider: str
+    model: str
+    paid: bool
+    calls: int
+    cached: int
+    to_run: int
+    approx_input_tokens: int
+    max_output_tokens: int
 
 
 def load_comparisons(config: RunConfig, settings: Settings) -> list[Comparison]:
@@ -30,20 +51,94 @@ def run_path(config: RunConfig, name: str) -> Path:
     return config.out_dir / "runs" / f"{name}.jsonl"
 
 
-def run_study(config: RunConfig, settings: Settings | None = None) -> RunReport:
-    """Run every configured judge, store its records, then score and write reports."""
-    settings = settings or Settings()
-    comparisons = load_comparisons(config, settings)
-    for spec in config.judges:
-        judge = build_judge(
+def build_judges(config: RunConfig, settings: Settings) -> list[Judge]:
+    """Build every configured judge. Fails early on a missing key or bad parameter."""
+    return [
+        build_judge(
             spec.name,
             spec.type,
             spec.params,
             seed=config.seed,
             min_length_ratio=config.min_length_ratio,
+            cache_dir=settings.cache_dir,
         )
-        write_records(run_judge(judge, comparisons), run_path(config, spec.name))
+        for spec in config.judges
+    ]
+
+
+def plan_judges(judges: list[Judge], comparisons: list[Comparison]) -> list[PlanRow]:
+    """Count calls, cache hits and approximate tokens for the LLM judges."""
+    rows = []
+    for judge in judges:
+        if not isinstance(judge, LLMJudge):
+            continue
+        calls = cached = input_chars = 0
+        for comparison in comparisons:
+            for shown_first in ("a", "b"):
+                request = judge.request(comparison, shown_first)
+                calls += 1
+                if judge.is_cached(request):
+                    cached += 1
+                else:
+                    input_chars += len(request.system) + len(request.user)
+        to_run = calls - cached
+        rows.append(
+            PlanRow(
+                judge=judge.name,
+                provider=judge.backend.provider,
+                model=judge.backend.model,
+                paid=judge.paid,
+                calls=calls,
+                cached=cached,
+                to_run=to_run,
+                approx_input_tokens=input_chars // 4,
+                max_output_tokens=to_run * judge.max_output_tokens,
+            )
+        )
+    return rows
+
+
+def plan_study(config: RunConfig, settings: Settings | None = None) -> list[PlanRow]:
+    """Estimate the work a run would do, without calling any model."""
+    settings = settings or Settings()
+    return plan_judges(build_judges(config, settings), load_comparisons(config, settings))
+
+
+def check_budget(plan: list[PlanRow], max_paid_calls: int | None) -> None:
+    """Refuse to start paid calls that have no budget or exceed it."""
+    paid_calls = sum(row.to_run for row in plan if row.paid)
+    if paid_calls == 0:
+        return
+    if max_paid_calls is None:
+        raise BudgetError(
+            f"{paid_calls} paid calls are needed. Review `judgecheck plan`, then set "
+            "max_paid_calls in the config to authorize them."
+        )
+    if paid_calls > max_paid_calls:
+        raise BudgetError(
+            f"{paid_calls} paid calls are needed but max_paid_calls is {max_paid_calls}"
+        )
+
+
+def run_study(config: RunConfig, settings: Settings | None = None) -> RunReport:
+    """Run every configured judge, store its records, then score and write reports."""
+    settings = settings or Settings()
+    comparisons = load_comparisons(config, settings)
+    judges = build_judges(config, settings)
+    check_budget(plan_judges(judges, comparisons), config.max_paid_calls)
+    for judge in judges:
+        write_records(
+            run_judge(judge, comparisons, _progress(judge.name)), run_path(config, judge.name)
+        )
     return _score(config, settings, comparisons)
+
+
+def _progress(name: str):  # type: ignore[no-untyped-def]
+    def report(done: int, total: int) -> None:
+        if done == total or done % 10 == 0:
+            print(f"{name}: {done}/{total}", file=sys.stderr, flush=True)
+
+    return report
 
 
 def score_study(config: RunConfig, settings: Settings | None = None) -> RunReport:
