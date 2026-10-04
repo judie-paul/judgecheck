@@ -16,6 +16,7 @@ make setup            # Python 3.12 virtualenv with development tools
 make ingest           # normalize the bundled sample, no network needed
 make ingest-hf        # normalize the full pinned dataset (needs the hf extra)
 make pipeline         # offline run: mock judges on the sample -> reports/results.md
+make app              # results explorer (needs the app extra)
 make lint typecheck test
 ```
 
@@ -40,6 +41,15 @@ All intervals are 95% percentile bootstraps resampled by comparison. Undefined r
 are reported as undefined, never as zero. Judges are configured in `configs/*.yaml`;
 `make pipeline` runs the offline mock judges, whose known biases verify the metrics
 (`tests/test_judges.py` recovers each injected bias).
+
+## Explorer
+
+`make app` (or `judgecheck app`) opens a Streamlit explorer over any finished run in
+`reports/`: agreement and bias charts with confidence intervals, and a per-comparison
+drill-down that shows the expert votes beside the judge's verdicts in both display orders,
+filterable to disagreements with the experts, order-sensitive verdicts and unusable responses.
+With Docker, `docker compose up --build` serves it at http://127.0.0.1:8501 from `./reports`;
+`docker compose --profile ollama up` also starts a local model server.
 
 ## Judges
 

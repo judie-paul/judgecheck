@@ -13,3 +13,4 @@ build/
 data/
 reports/
 .cache/
+!docs/results.json

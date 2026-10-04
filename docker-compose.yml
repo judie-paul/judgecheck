@@ -1,0 +1,17 @@
+services:
+  explorer:
+    build: .
+    ports:
+      - "127.0.0.1:8501:8501"
+    volumes:
+      - ./reports:/data/reports:ro
+  # Optional: a local model server for the free study. Start with `--profile ollama`.
+  ollama:
+    image: ollama/ollama
+    profiles: ["ollama"]
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+volumes:
+  ollama:

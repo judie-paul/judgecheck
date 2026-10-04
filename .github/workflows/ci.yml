@@ -17,7 +17,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install -e '.[dev,llm]'
+      - run: python -m pip install -e '.[dev,llm,app]'
       - run: make PYTHON=python lint typecheck test ingest pipeline
       - run: python -m build
       - run: python -m twine check dist/*
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build explorer
+      - run: mkdir -p reports && docker compose up -d --wait explorer
+      - run: curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:8501/_stcore/health
+      - run: docker compose down
+        if: always()
