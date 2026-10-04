@@ -29,6 +29,7 @@ class RunConfig(BaseModel):
     bootstrap: int = Field(default=1000, ge=0)
     min_length_ratio: float = Field(default=1.2, ge=1.0)
     out_dir: Path = Path("reports")
+    max_paid_calls: int | None = Field(default=None, ge=0)
     judges: list[JudgeSpec] = Field(min_length=1)
 
     @model_validator(mode="after")

@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Milestone 2 (metrics and the offline mock judge) is submitted through a PR.
-Milestone 1 is merged. Next: milestone 3, real judges and prompting strategies.
+Milestone 3 (LLM judges, strategies, cache and spend guard) is submitted through a PR.
+Milestones 1 and 2 are merged. Next: milestone 4, the results explorer and containers.
 
 ## Implemented
 
@@ -28,6 +28,11 @@ Milestone 1 is merged. Next: milestone 3, real judges and prompting strategies.
   `judgecheck run` / `report` driven by YAML; stored per-judge JSONL runs allow
   re-scoring without re-judging.
 
+- LLM judges for Anthropic (`claude-sonnet-5-5`, no temperature, `between_tools` thinking),
+  OpenAI (`gpt-4o-mini`, temperature 0, fixed seed) and Ollama; strict `[[A]]/[[B]]/[[C]]`
+  parsing; delimiter-neutralized prompts; atomic response cache; `judgecheck plan`; paid runs
+  need a covering `max_paid_calls`; missing keys raise instead of mocking.
+
 ## Validation
 
 - Dataset schema, license (CC BY 4.0) and revision confirmed from the Hugging Face API.
@@ -44,6 +49,14 @@ Milestone 1 is merged. Next: milestone 3, real judges and prompting strategies.
   agreement is S1 0.672 [0.646, 0.698] and S2 0.828 [0.801, 0.853] over 961 multi-vote
   comparisons, in line with the roughly 63%/81% the MT-Bench paper reports. Mock judges are
   simulations, not model results.
+- Milestone 3: 82 tests pass at 97.2% coverage. Provider clients are faked: no network or paid
+  call occurs in the default suite. The Anthropic and OpenAI backends have therefore never been
+  run against the real APIs (no keys are configured); their request shapes follow the SDK
+  documentation and are asserted in tests.
+- Live Ollama probe (3 calls per cell, not a result): both models return a parseable verdict on
+  the direct strategy (about 5.5 s per call); `llama3.2:1b` ignored the `[[A]]` format on
+  rationale and rubric prompts (0/3 parsed, answering "Assistant A's reply is better"), and
+  `qwen2.5:1.5b` parsed 2/3 and 3/3. Strict parsing keeps these as unusable responses.
 - Python 3.11 is validated only by CI.
 
 ## Constraints
