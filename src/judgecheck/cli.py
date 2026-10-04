@@ -1,5 +1,7 @@
 """Command-line interface."""
 
+import subprocess
+import sys
 from collections import Counter
 from enum import StrEnum
 from pathlib import Path
@@ -55,6 +57,21 @@ def ingest(
         f"{len(rows)} expert votes -> {len(comparisons)} comparisons "
         f"({multi} with more than one vote) written to {out}"
     )
+
+
+@app.command(name="app")
+def explorer(
+    address: Annotated[str, typer.Option(help="Interface to listen on")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Port to listen on")] = 8501,
+) -> None:
+    """Open the results explorer (needs the app extra). Reads JUDGECHECK_REPORTS."""
+    path = Path(__file__).with_name("app.py")
+    command = [
+        sys.executable, "-m", "streamlit", "run", str(path),
+        f"--server.address={address}", f"--server.port={port}",
+        "--server.headless=true", "--browser.gatherUsageStats=false",
+    ]  # fmt: skip
+    raise typer.Exit(subprocess.run(command, check=False).returncode)
 
 
 @app.command()
